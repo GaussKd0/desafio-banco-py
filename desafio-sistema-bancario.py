@@ -1,89 +1,129 @@
 import os
-#só ira ter 1 usuario
-#operaçãoes desejadas:
+import textwrap
 
-# regras
-#   
+class ContaBancaria:
+    def __init__(self):
+        self.contas = []
 
-# 1 - deposito
-#   deve ser possivel mandar valores positivos pra conta bancaria
-#   todos os depositos devem ser armazenados em uma variavel de extrato
-#   valor só pode ser inteiro e positivo
+    def menu(self):
+        menu_text = """
+        ======================= MENU =======================
+        [d]\tDepositar
+        [s]\tSacar
+        [e]\tExtrato
+        [nc]\tNova Conta
+        [lc]\tListar Conta
+        [nu]\tNovo Usuário
+        [q]\tSair
+        ==> """
+        return input(textwrap.dedent(menu_text))
 
-# 2 - extrato
-#   devera exbir todos os saques e estratos que foram armazenados na variavel extrato
-#  
-
-
-# 3 - saque
-#   devera ter um limite maximo de 500 reais 
-#   sera possivel apenas realizar 3 saques diarios
-#   caso não tenha saldo em conta o sistema devera informar que é impossivel realizar o saque
-
-saldo = 1000
-limite_saque = 500
-extrato = ""
-numero_saques = 0
-LIMITE_SAQUES = 3
-
-while True:
-    os.system("clear")
-    print("Saldo atual:", saldo)
-    resposta = input("Seja Bem Vindo Ao Banco\n"
-                     "Digite [e] para acessar o extrato\n"
-                     "Digite [s] para sacar\n"
-                     "Digite [d] para depositar\n"
-                     "Digite [l] para sair do banco\n")
-    
-    
-    if resposta == "e":
-        print("Extrato:")
-        print(extrato)
-        input("\nPressione Enter para continuar...")
-    
-    elif resposta == "s":
+    def depositar(self, conta_idx, valor):
         os.system("clear")
-        print("Saque")
-        
-        if numero_saques >= LIMITE_SAQUES:
-            print("Número de saques excedido")
-            input("\nPressione Enter para continuar...")
-            continue
-
-        else:
-
-            valor = float(input("Digite o valor que deseja sacar: "))
-            if valor <= saldo and valor <= limite_saque and valor > 0:
-                numero_saques += 1
-                saldo -= valor
-                extrato += f"Saque: {valor}\n"
-                print(f"Você sacou: {valor}")
+        if 0 <= conta_idx < len(self.contas):
+            if valor > 0:
+                self.contas[conta_idx]["saldo"] += valor
+                self.contas[conta_idx]["extrato"] += f"Depósito:\tR$ {valor:.2f}\n"
+                print("\n>>> Depósito realizado com sucesso! <<<")
                 input("\nPressione Enter para continuar...")
+            else:
+                print("\n <<< Valor informado não é válido")
+                input("\nPressione Enter para continuar...")
+        else:
+            print("\n <<< Conta não encontrada")
+            input("\nPressione Enter para continuar...")
 
+    def sacar(self, conta_idx, valor):
+        os.system("clear")
+        if 0 <= conta_idx < len(self.contas):
+            if valor <= self.contas[conta_idx]["saldo"] and valor <= self.contas[conta_idx]["limite_saque"] and valor > 0:
+                self.contas[conta_idx]["saldo"] -= valor
+                self.contas[conta_idx]["extrato"] += f"Saque: {valor}\n"
+                print(f"Você sacou: {valor:.2f}")
+                input("\nPressione Enter para continuar...")
+                self.listar_conta()
             else:
                 print("O valor do saque é inválido")
                 input("\nPressione Enter para continuar...")
-    
-    elif resposta == "d":
-
-        os.system("clear")
-        print("Depósito\n")
-        valor = float(input("Digite o valor que deseja depositar: "))
-        if valor > 0:
-            saldo += valor
-            extrato += f"Depósito: {valor}\n"
-            print("Depósito realizado com sucesso")
-            input("\nPressione Enter para continuar...")
-
         else:
-            print("O valor do depósito é inválido")
+            print("\n <<< Conta não encontrada")
             input("\nPressione Enter para continuar...")
 
-    elif resposta == "l":
-        print("Saindo do banco, Agradecemos a preferencia")
-        break
-
-    else:
-        os.system("clear")
-        print("Opção inválida")
+    def extrato_conta(self, conta_idx):
+        print("Extrato:")
+        print(self.contas[conta_idx]["extrato"])
         input("\nPressione Enter para continuar...")
+
+    def nova_conta(self):
+        os.system("clear")
+        nome = input("Digite o nome do titular da conta: ")
+        saldo = float(input("Digite o saldo inicial da conta: "))
+        limite_saque = float(input("Digite o limite de saque da conta: "))
+        nova_conta = {
+            "nome": nome,
+            "saldo": saldo,
+            "limite_saque": limite_saque,
+            "extrato": ""
+        }
+        self.contas.append(nova_conta)
+        print("Nova conta criada com sucesso!")
+        input("\nPressione Enter para continuar...")
+
+    def listar_conta(self):
+        os.system("clear")
+        print("\n--- Lista de Contas ---")
+        for idx, conta in enumerate(self.contas):
+            print(f"Conta {idx + 1}: Titular {conta['nome']}, Saldo R$ {conta['saldo']:.2f}")
+        input("\nPressione Enter para continuar...")
+
+    def novo_usuario(self):
+        os.system("clear")
+        nome = input("Digite o nome do novo usuário: ")
+        self.contas.append({"nome": nome, "saldo": 0, "limite_saque": 0, "extrato": ""})
+        print("Novo usuário adicionado com sucesso!")
+        input("\nPressione Enter para continuar...")
+
+    def main(self):
+        while True:
+            os.system("clear")
+            resposta = self.menu()
+            
+            if resposta == "e":
+                self.listar_conta()
+                conta_idx = int(input("Digite o número da conta para ver o extrato: ")) - 1
+                self.extrato_conta(conta_idx)
+            
+            elif resposta == "s":
+                self.listar_conta()
+                conta_idx = int(input("Digite o número da conta para sacar: ")) - 1
+                valor = float(input("Digite o valor que deseja sacar: "))
+                self.sacar(conta_idx, valor)
+        
+            elif resposta == "d":
+                self.listar_conta()
+                conta_idx = int(input("Digite o número da conta para depositar: ")) - 1
+                valor = float(input("Digite o valor que deseja depositar: "))
+                self.depositar(conta_idx, valor)
+            
+            elif resposta == "nc":
+                self.nova_conta()
+
+            elif resposta == "lc":
+                self.listar_conta()
+
+            elif resposta == "nu":
+                self.novo_usuario()
+
+            elif resposta == "q":
+                print("Saindo do banco. Agradecemos a preferência!")
+                break
+
+            else:
+                os.system("clear")
+                print("Opção inválida")
+                input("\nPressione Enter para continuar...")
+
+# Inicializando e executando o programa
+if __name__ == "__main__":
+    conta = ContaBancaria()
+    conta.main()
